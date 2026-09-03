@@ -1,28 +1,41 @@
-# 听写小助手 / Dictation Practice
+# Dictation Practice｜听写小助手
 
-把学校里的中文或英文听写内容，生成一个适合学生独立使用的单文件 HTML 听写练习页。
+把学校布置的中文或英文听写内容，直接生成一个学生可以独立使用的 HTML 听写页面。
 
-这个仓库同时支持三种使用方式：
+这个仓库同时服务三种使用方式：
 
-1. **作为 ChatGPT Skill 使用**：直接使用仓库根目录的 `SKILL.md`、`agents/`、`scripts/` 和 `assets/`。
-2. **交给其他 AI 使用**：把仓库提供给能读取文件/运行 Python 的 AI，并使用 `prompts/UNIVERSAL_PROMPT.md` 中的提示词。
-3. **完全不用 AI，直接运行脚本**：准备一个“一行一个听写项”的 UTF-8 文本文件，然后运行生成脚本。
+1. **ChatGPT Skills**：直接使用仓库里的 `SKILL.md`、`agents/`、`scripts/`、`assets/`。
+2. **其他 AI / Agent**：把 `prompts/UNIVERSAL_PROMPT.md` 交给支持文件和代码执行的 AI，让它按同一流程生成。
+3. **本地 Python**：直接运行 `scripts/generate_dictation.py`。
 
-## 能做什么
+## 当前版本的核心设计
 
-- 支持英文、中文，以及中英混合听写。
-- 英文任务在页面内提供 **美音 / 英音** 选择。
-- 中文-only 任务自动隐藏英语口音设置。
-- 语速、重复次数、书写时间都在页面内用明确的 `− / 数值 / +` 控件调整。
-- 练习过程中使用 `上一条`、`再听一次`、`下一条`、`播放这一条` 等明确文字按钮。
-- 听写时隐藏答案，结束后通过 `检查答案` 查看。
-- 最终产物是一个独立 HTML 文件，浏览器打开即可使用。
-- 播放使用浏览器自带 Speech Synthesis，不需要额外语音 API。
+- 中文、英文、中英混合听写均可。
+- 对话中已经有听写内容时，AI 直接读取并生成；不要重复询问。
+- 没有听写内容时，只问用户把听写内容发来，支持文字、照片、截图或文件。
+- 每行作为一个听写条目；句子中的逗号、分号不拆分。
+- **不使用浏览器 Web Speech / speechSynthesis。**
+- 英文固定使用 Microsoft neural voice：`en-GB-SoniaNeural`。
+- 中文固定使用 Microsoft neural voice：`zh-CN-XiaoxiaoNeural`（晓晓）。
+- 通过 `edge-tts` 预先生成 MP3，再直接嵌入最终 HTML，所以学生端不依赖设备自带音色。
+- 最终产出是**单个自包含 `dictation.html`**，生成完成后可离线播放。
+
+## 学生端交互
+
+页面采用面向小学生的简化交互：
+
+- 不提供男声 / 女声切换，也不要求学生配置声音。
+- 播放设置保留：语速、朗读次数、书写时间。
+- 设置使用明显的 `− / 数值 / +`，不依赖拖动条。
+- 播放控制直接显示文字：`上一条`、`再听一次`、`下一条`、`播放这一条`。
+- 不使用看起来像播放按钮、实际却不能点击的装饰图标。
+- 听写过程中隐藏答案，完成后再通过 `检查答案` 查看。
 
 ## 仓库结构
 
 ```text
 dictation-practice/
+├── .gitignore
 ├── README.md
 ├── SKILL.md
 ├── agents/
@@ -30,98 +43,95 @@ dictation-practice/
 ├── assets/
 │   ├── dictation-template.html
 │   └── icon.svg
-├── scripts/
-│   └── generate_dictation.py
+├── examples/
+│   ├── english-demo.html
+│   ├── english-items.txt
+│   └── mixed-items.txt
 ├── prompts/
 │   └── UNIVERSAL_PROMPT.md
-└── examples/
-    ├── english-items.txt
-    ├── mixed-items.txt
-    └── english-demo.html
+└── scripts/
+    └── generate_dictation.py
 ```
 
-## 方法一：作为 ChatGPT Skill 使用
+## ChatGPT Skill 使用方式
 
-仓库根目录已经保留标准 Skill 结构。核心工作流定义在 `SKILL.md` 中。
+将本仓库作为 Skill 使用时，核心入口是 `SKILL.md`。
 
-典型请求：
-
-> 帮我把下面这些做成听写练习：library、usually、because、take care of……
-
-如果用户已经在对话中提供了听写内容，AI 应直接读取并生成页面；如果没有提供，只询问一次听写内容，不额外询问口音、语速、重复次数或书写时间，这些都由学生在页面内设置。
-
-## 方法二：给其他 AI 使用
-
-把这个仓库作为附件、工作区或代码仓库提供给 AI，然后把 `prompts/UNIVERSAL_PROMPT.md` 的内容发给它。
-
-最关键的一句可以简化成：
-
-> 请按照这个仓库的 `prompts/UNIVERSAL_PROMPT.md` 执行，把我提供的听写内容生成一个可直接打开的 HTML 听写练习页。
-
-只要对应 AI 能读取仓库文件并运行 Python，就不需要支持 ChatGPT Skills，也能复用完全相同的生成器和页面模板。
-
-## 方法三：不使用 AI，直接生成
-
-项目只使用 Python 标准库，无需安装第三方依赖。
-
-先准备一个 UTF-8 文本文件，例如 `items.txt`：
+典型输入：
 
 ```text
-library
-usually
-take care of
-After school, I went to the library.
+帮我生成今天的听写：
+environment
+responsibility
+communicate
+achievement
 ```
 
-注意：**一行就是一个完整听写项**。句子内部的逗号、分号和中英文标点不会被拆分。
+如果用户已经在对话中上传了学校作业照片或列出了听写内容，Skill 应直接读取并生成，不要再次追问音色、语速、朗读次数等设置。
+
+如果用户只说：
+
+```text
+给我生成听写
+```
+
+只需要回复：
+
+```text
+把今天要听写的内容发给我吧。可以直接粘贴文字，也可以发学校作业的照片。
+```
+
+拿到内容后立即生成。
+
+## 其他 AI 使用方式
+
+如果对方没有安装 ChatGPT Skill，可以打开：
+
+`prompts/UNIVERSAL_PROMPT.md`
+
+把其中的提示词和本仓库一起交给支持 Python / 文件生成的 AI。这个提示词保留了相同的前置交互、内容整理规则、固定语音和 HTML 输出规范。
+
+## 本地运行
+
+环境要求：
+
+- Python 3
+- `edge-tts`
+- 生成音频时需要联网访问对应的 TTS 服务
+
+安装：
+
+```bash
+python -m pip install edge-tts
+```
+
+准备一个 UTF-8 文本文件，每行一个听写条目，例如：
+
+```text
+environment
+responsibility
+After school, I went to the library.
+锲而不舍
+全神贯注
+```
 
 运行：
 
 ```bash
-python3 scripts/generate_dictation.py \
-  --items-file items.txt \
-  --out dictation.html
+python scripts/generate_dictation.py --items-file examples/mixed-items.txt --out dictation.html
 ```
 
-如果需要自定义标题：
+生成后的 `dictation.html` 已经把 MP3 音频嵌入文件内部，可以单独发送给学生。
 
-```bash
-python3 scripts/generate_dictation.py \
-  --items-file items.txt \
-  --out dictation.html \
-  --title "四年级英语 Unit 3 听写练习"
-```
+## 关于示例页
 
-然后直接用浏览器打开 `dictation.html`。
+`examples/english-demo.html` 用于预览学生端 V5 页面布局和操作逻辑。仓库本身不提交 Microsoft 语音生成出来的示例音频；真实听写页请运行生成脚本，以确保最终音频确实来自固定的 Sonia / 晓晓声音。
 
-## 输入规则
+## 固定声音
 
-生成前应遵循这些规则：
+| 内容 | Voice ID |
+|---|---|
+| 英文 | `en-GB-SoniaNeural` |
+| 中文 | `zh-CN-XiaoxiaoNeural` |
 
-- 每个单词、短语或句子视为一个独立听写项。
-- 保留用户原文的拼写、中文字符、标点、大小写和措辞。
-- 不要因为逗号、分号或中文标点拆分句子。
-- 如果来源本身是编号/项目符号列表，只移除列表编号，不改正文。
-- 不自动添加释义、翻译、音标、例句或教学材料，除非用户明确要求。
-- 不猜测缺失的听写内容。
-
-## 浏览器说明
-
-听写页使用设备浏览器的 Speech Synthesis 功能。正常情况下直接打开即可；如果设备没有可用的英文语音或播放异常，可以换 Chrome、Edge 或 Safari 尝试。
-
-## 示例
-
-- `examples/english-items.txt`：英文示例输入
-- `examples/mixed-items.txt`：中英混合示例输入
-- `examples/english-demo.html`：由本仓库脚本实际生成的示例页面
-
-## 适合分享到哪里
-
-这个项目本身不依赖某一家 AI 平台。因此 GitHub 仓库可以同时作为：
-
-- ChatGPT Skill 源码
-- Claude / Gemini / Cursor / Codex 等工具的参考工作流
-- Python 命令行小工具
-- 听写页面模板源码
-
-不同 AI 是否能直接执行仓库脚本，取决于它自身是否具备文件和代码运行能力；生成逻辑本身不依赖特定模型 API。
+不要自动替换成浏览器系统声音。固定音色是这个项目的核心要求之一。
