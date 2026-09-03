@@ -1,0 +1,12 @@
+interface:
+  display_name: 听写小助手
+  short_description: 把中英文听写内容直接生成学生可用的听写练习页
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
