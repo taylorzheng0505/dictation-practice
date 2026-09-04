@@ -17,7 +17,7 @@
 - **不使用浏览器 Web Speech / speechSynthesis。**
 - 英文固定使用 Microsoft neural voice：`en-GB-SoniaNeural`。
 - 中文固定使用 Microsoft neural voice：`zh-CN-XiaoxiaoNeural`（晓晓）。
-- 通过 `edge-tts` 预先生成 MP3，再直接嵌入最终 HTML，所以学生端不依赖设备自带音色。
+- 通过 `edge_tts` Python API 直接预先生成 MP3，再嵌入最终 HTML，所以学生端不依赖设备自带音色。
 - 最终产出是**单个自包含 `dictation.html`**，生成完成后可离线播放。
 
 ## 学生端交互
@@ -99,11 +99,19 @@ achievement
 - `edge-tts`
 - 生成音频时需要联网访问对应的 TTS 服务
 
-安装：
+安装（**使用与你运行生成脚本相同的 Python 解释器**）：
 
 ```bash
 python -m pip install edge-tts
 ```
+
+如果你的环境使用 `python3` 或 Windows `py`，对应使用：`python3 -m pip install edge-tts` 或 `py -m pip install edge-tts`。
+
+### 跨平台实现说明
+
+生成脚本直接 `import edge_tts` 并调用 `edge_tts.Communicate`。它**不会**寻找或调用 `edge-tts` 命令行程序，因此不依赖系统 `PATH`，也不需要 `edge-tts.exe`、`.cmd/.bat`、shell wrapper 或 `subprocess`。Windows、macOS、Linux 统一走同一条 Python API 路径。
+
+如果另一个 AI 发现 `edge_tts` 无法导入，应只检查“当前运行脚本的 Python 环境是否安装了该包”；不要转而排查 `where/which edge-tts` 或创建命令行 shim。
 
 准备一个 UTF-8 文本文件，每行一个听写条目，例如：
 

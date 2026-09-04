@@ -39,6 +39,8 @@
 python -m pip install edge-tts
 ```
 
+跨平台要求：生成脚本必须通过当前 Python 解释器直接 `import edge_tts` 并调用 `edge_tts.Communicate`。不要调用 `edge-tts` CLI，不要使用 `shutil.which` / `where` / `which` 查找 PATH，不要创建 `.cmd`、`.bat`、`.py` wrapper 或 shell shim，也不要为了调用 TTS 使用 `subprocess`。如果 `import edge_tts` 失败，只需把 `edge-tts` 安装到运行生成脚本的同一个 Python 环境。
+
 如果环境无法安装依赖或无法联网合成语音，要明确说明限制；不要悄悄降级到难听的浏览器系统声音。
 
 ## 4. 使用仓库生成器

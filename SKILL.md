@@ -22,9 +22,11 @@ Turn school dictation content into a simple HTML practice page that a student ca
    - Write the normalized items to a UTF-8 temporary text file with exactly one item per line.
 
 3. Generate fixed neural audio and the page.
-   - Use `edge-tts`; never use browser `speechSynthesis` as a fallback.
+   - Use the `edge_tts` **Python package API directly**; never invoke an `edge-tts` executable or shell command, and never use browser `speechSynthesis` as a fallback.
    - Fix English items to `en-GB-SoniaNeural` and Chinese items to `zh-CN-XiaoxiaoNeural`. See `references/voices.md` for the fixed voice mapping and rationale.
-   - If `edge-tts` is unavailable, first try `python3 -m pip install edge-tts`. If installation or network access is unavailable, explain the limitation instead of generating a browser-TTS version.
+   - Ensure `edge_tts` is importable in the same Python interpreter that will run the generator. If it is missing, install `edge-tts` into that same interpreter (for example `python -m pip install edge-tts` or `python3 -m pip install edge-tts`, depending on the environment).
+   - Do **not** troubleshoot `PATH`, `where/which edge-tts`, `edge-tts.exe`, `.cmd/.bat` shims, wrapper scripts, or `--tts-command`; the generator intentionally avoids all CLI discovery for Windows/macOS/Linux portability.
+   - If installation or TTS network access is unavailable, explain the limitation instead of generating a browser-TTS version.
    - Run:
 
    ```bash
